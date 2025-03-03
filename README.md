@@ -7,13 +7,14 @@
 [![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/configuration-as-code.svg?color=blue)](https://plugins.jenkins.io/configuration-as-code)
 [![Gitter](https://badges.gitter.im/jenkinsci/configuration-as-code-plugin.svg)](https://gitter.im/jenkinsci/configuration-as-code-plugin)
 
-<img src="plugin/src/main/webapp/img/logo-head.svg" width="192">
+<img src="images/logo-head.svg" width="192">
 
 
 - [Introduction](#introduction)
 - [Getting Started](#getting-started)
 - [Examples and demos](./demos)
 - [Handling Secrets](./docs/features/secrets.adoc)
+- [Security considerations](#security-considerations)
 - [Exporting configurations](./docs/features/configExport.md)
 - [Validating configurations](./docs/features/jsonSchema.md)
 - [Merge Strategy](./docs/features/mergeStrategy.md)
@@ -64,7 +65,7 @@ jenkins:
         name: "static-agent"
         remoteFS: "/home/jenkins"
         launcher:
-          jnlp:
+          inbound:
             workDirSettings:
               disabled: true
               failIfWorkDirIsMissing: false
@@ -72,8 +73,6 @@ jenkins:
               workDirPath: "/tmp"
 
   slaveAgentPort: 50000
-  agentProtocols:
-    - "jnlp2"
 
 tool:
   git:
@@ -149,7 +148,7 @@ If set up correctly, you should be able to browse the Configuration as Code page
 
 When configuring the first Jenkins instance, browse the examples shown in the [demos](demos)
 directory of this repository. If you have a plugin that does not have an example, consult the reference
-help document. Click the `Documentation` link at the bottom of the Configuration as Code page.
+help document. Click the `Documentation` link at the bottom of the Configuration as Code page in your Jenkins instance.
 
 ![Reference Page](images/reference.png)
 
@@ -191,7 +190,7 @@ Anchor keys must be prefixed with `x-` due to JCasC handling unknown root elemen
 x-jenkins-linux-node: &jenkins_linux_node_anchor
   remoteFS: "/home/jenkins"
   launcher:
-    jnlp:
+    inbound:
       workDirSettings:
         disabled: true
         failIfWorkDirIsMissing: false
@@ -217,7 +216,7 @@ jenkins:
         name: "static-agent1"
         remoteFS: "/home/jenkins"
         launcher:
-          jnlp:
+          inbound:
             workDirSettings:
               disabled: true
               failIfWorkDirIsMissing: false
@@ -227,7 +226,7 @@ jenkins:
         name: "static-agent2"
         remoteFS: "/home/jenkins"
         launcher:
-          jnlp:
+          inbound:
             workDirSettings:
               disabled: true
               failIfWorkDirIsMissing: false
@@ -235,6 +234,15 @@ jenkins:
               workDirPath: "/tmp"
 ```
 
+## Security considerations
+Only Jenkins administrators are able to create or update a Jenkins instance using configuration as code configuration files.
+However, in some environments, administrators may choose to allow less privileged users to modify portions of the configuration files, for example by storing them in an SCM repository that those users have access to.
+Allowing non-administrators to edit these configuration files can pose various security risks, so any changes made by non-administrators must be reviewed for safety before they are applied.
+
+Here are some examples of changes that could be problematic:
+
+- Modification of the security realm or authorization strategy settings could give users higher permissions than intended.
+- Interpolation of secrets in unprotected contexts may expose sensitive data. For example, a snippet like `systemMessage: "${SENSITIVE_VARIABLE}"` could expose the value of a sensitive environment variable to all users who are able to access Jenkins.
 
 ## Installing plugins
 
