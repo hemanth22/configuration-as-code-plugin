@@ -26,12 +26,11 @@ Before you start, make sure the following pre-conditions are met:
 </parent>
 ```
 
-- The Jenkins core version and the Java level of your plugin are aligned with the Configuration as Code plugin versions (also in the [pom.xml](/pom.xml)).
+- The Jenkins core version of your plugin are aligned with the Configuration as Code plugin versions (also in the [pom.xml](/pom.xml)).
 
 ```xml
 <properties>
     <jenkins.version>THE_JENKINS_CORE_VERSION_HERE</jenkins.version>
-    <java.level>THE_JAVA_VERSION_HERE</java.level>
 </properties>
 ```
 
@@ -46,7 +45,7 @@ public static final class DescriptorImpl extends Descriptor<Foo> {
    /** optional password */
    private Secret password;
 
-   public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+   public boolean configure(StaplerRequest2 req, JSONObject json) throws FormException {
        charset = json.getString("charset");
        if (json.has("usePassword")) {
            password = Secret.fromString(nullify(auth.getString("password")));
@@ -171,7 +170,7 @@ Rewrite `Descriptor#configure()` implementation to rely on `request.bindJson(thi
 default values as a `Descriptor` is a mutable object, i.e. data-binding won't reset values if they are not present in the JSON payload.
 
 ```java
-        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        public boolean configure(StaplerRequest2 req, JSONObject json) throws FormException {
             // reset optional authentication to default before data-binding
             this.authentication = null;
             req.bindJSON(this, json);
@@ -246,6 +245,15 @@ public class ConfigurationAsCodeTest {
 Doing so, you will confirm JCasC is able to introspect your plugin and build the expected configuration data model, but also detect
 some changes made to your plugin break this configuration model.
 
+**Location of configuration-as-code.yml:**
+
+The `configuration-as-code.yml` file should be located within the test resources directory (`src/test/resources`) of your project repository. Specifically, it should be placed in the same directory where your test classes reside.
+
+You can find some examples here
+
+1. [kubernetes-plugin](https://github.com/jenkinsci/kubernetes-plugin/blob/master/src/test/resources/org/csanchez/jenkins/plugins/kubernetes/casc/configuration-as-code.yaml)
+2. [azure-cosmosdb-plugin](https://github.com/jenkinsci/azure-cosmosdb-plugin/blob/main/src/test/resources/io/jenkins/plugins/azurecosmosdb/configuration-as-code.yml)
+
 ### Backward compatibility test
 
 About the latter, in case you need to introduce some breaking changes, you can define a backward compatibility test case:
@@ -298,12 +306,12 @@ public class ConfigurationAsCodeTest {
     @ClassRule
     @ConfiguredWithCode("configuration-as-code.yml")
     public static JenkinsConfiguredWithCodeRule j = new JenkinsConfiguredWithCodeRule();
-    
+  
     @Test
     public void should_support_configuration_as_code() throws Exception {
      ...
     }
-    
+  
     @Test
     public void should_support_configuration_export() throws Exception {
      ...
@@ -312,7 +320,8 @@ public class ConfigurationAsCodeTest {
 ```
 
 ### JSON Schema Test (Beta)
-We generate a JSON schema that users can use to validate their changes and provide IDE assistance, 
+
+We generate a JSON schema that users can use to validate their changes and provide IDE assistance,
 you can test that your plugin's example yaml file validates correctly by implementing the below test:
 `SchemaGenerationTest` provides a abstraction layer to test out the plugins YAML file against the generated schema.
 
@@ -322,6 +331,7 @@ Step 1
 
 Create a YAML file for the configurators corresponding to the developed plugin.
 For eg: `validJenkinsConfigurator.yml`
+
 ```yaml
 jenkins:
     systemMessage: "Configured by Configuration as Code plugin"

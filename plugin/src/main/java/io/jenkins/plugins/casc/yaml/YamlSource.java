@@ -1,13 +1,12 @@
 package io.jenkins.plugins.casc.yaml;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.nio.file.Path;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
-
 public class YamlSource<T> {
 
     public final T source;
