@@ -1,33 +1,30 @@
 package io.jenkins.plugins.casc.impl.configurators;
 
-import io.jenkins.plugins.casc.ConfiguratorException;
-import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
-import org.junit.Rule;
-import org.junit.Test;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
+import io.jenkins.plugins.casc.ConfiguratorException;
+import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.casc.misc.junit.jupiter.WithJenkinsConfiguredWithCode;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
-public class SelfConfiguratorTest {
-
-    @Rule
-    public JenkinsConfiguredWithCodeRule j = new JenkinsConfiguredWithCodeRule();
+@WithJenkinsConfiguredWithCode
+class SelfConfiguratorTest {
 
     @Test
     @ConfiguredWithCode(value = "SelfConfiguratorTest.yml")
-    public void self_configure() {
+    void self_configure(JenkinsConfiguredWithCodeRule j) {
         assertThat(j.jenkins.getRawBuildsDir(), is("/tmp"));
     }
 
     @Test
     @ConfiguredWithCode(value = "SelfConfiguratorRestrictedTest.yml", expected = ConfiguratorException.class)
-    public void self_configure_restricted() {
+    void self_configure_restricted(JenkinsConfiguredWithCodeRule j) {
         // expected to throw Configurator Exception
         assertThat(j.jenkins.getRawBuildsDir(), is(not("/tmp")));
     }
