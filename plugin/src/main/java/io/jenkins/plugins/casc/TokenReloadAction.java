@@ -1,10 +1,14 @@
 package io.jenkins.plugins.casc;
 
+import static java.util.logging.Level.SEVERE;
+
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.Extension;
 import hudson.model.UnprotectedRootAction;
 import hudson.security.ACL;
 import hudson.security.ACLContext;
+import hudson.util.HttpResponses;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +46,7 @@ public class TokenReloadAction implements UnprotectedRootAction {
     }
 
     @RequirePOST
-    public void doIndex(StaplerRequest2 request, StaplerResponse2 response) throws IOException {
+    public void doIndex(StaplerRequest2 request, StaplerResponse2 response) throws IOException, ServletException {
         String token = getReloadToken();
 
         if (token == null || token.isEmpty()) {
@@ -58,6 +62,13 @@ public class TokenReloadAction implements UnprotectedRootAction {
 
                 try (ACLContext ignored = ACL.as2(ACL.SYSTEM2)) {
                     ConfigurationAsCode.get().configure();
+                } catch (ConfiguratorException e) {
+                    LOGGER.log(SEVERE, "Failed to reload Jenkins Configuration as Code via token", e);
+
+                    String message = e.getMessage() != null ? e.getMessage() : "Unknown configuration error";
+
+                    HttpResponses.errorJSON("Failed to reload configuration: " + message)
+                            .generateResponse(request, response, this);
                 }
             } else {
                 response.sendError(401);
